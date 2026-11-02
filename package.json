@@ -1,5 +1,5 @@
 {
-  "name": "@zhuyuelei/dsh-screenshot",
+  "name": "dsh-screenshot-plugin",
   "version": "0.7.1",
   "description": "Headless global-hotkey region screenshot for DeepSeek Harness Desktop: no window, no sidebar entry, just a hotkey that copies a region to the clipboard, with large-model OCR.",
   "type": "module",

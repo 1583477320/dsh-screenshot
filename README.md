@@ -1,7 +1,7 @@
 # dsh-screenshot
 
-[![npm](https://img.shields.io/npm/v/@zhuyuelei/dsh-screenshot.svg)](https://www.npmjs.com/package/@zhuyuelei/dsh-screenshot)
-[![license](https://img.shields.io/npm/l/@zhuyuelei/dsh-screenshot.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/dsh-screenshot-plugin.svg)](https://www.npmjs.com/package/dsh-screenshot-plugin)
+[![license](https://img.shields.io/npm/l/dsh-screenshot-plugin.svg)](LICENSE)
 [![platform](https://img.shields.io/badge/platform-Windows-0078d4.svg)](#已知边界)
 
 无界面（headless）全局快捷键框选截图插件，为 DeepSeek Harness Desktop 编写。
@@ -19,7 +19,7 @@ clipboard.
 
 ```powershell
 cd "$env:USERPROFILE\.dsh\profiles\desktop"
-npm install "@zhuyuelei/dsh-screenshot"
+npm install "dsh-screenshot-plugin"
 ```
 
 包自带 `cordis.patch.yml`（bundle patch），装完把包名追加到同一目录 `package.json` 的
@@ -31,7 +31,7 @@ npm install "@zhuyuelei/dsh-screenshot"
     "bundles": [
       "@deepseek-ai/dsh-base",
       "@deepseek-ai/dsh-web-app",
-      "@zhuyuelei/dsh-screenshot"
+      "dsh-screenshot-plugin"
     ]
   }
 }
@@ -42,13 +42,13 @@ npm install "@zhuyuelei/dsh-screenshot"
 
 ```yaml
 - id: dsh-screenshot
-  name: "@zhuyuelei/dsh-screenshot"
+  name: "dsh-screenshot-plugin"
   config:
     enabled: true
     hotkey: Ctrl+Alt+A
 ```
 
-卸载：`npm uninstall @zhuyuelei/dsh-screenshot`，并从 `bundles` 里删掉那一行。
+卸载：`npm uninstall dsh-screenshot-plugin`，并从 `bundles` 里删掉那一行。
 从源码装也是同一条路：`npm install <本仓库路径>`。
 
 ## 使用
