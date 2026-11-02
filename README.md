@@ -19,8 +19,10 @@ clipboard.
 
 ```powershell
 cd "$env:USERPROFILE\.dsh\profiles\desktop"
-npm install "dsh-screenshot-plugin"
+pnpm add dsh-screenshot-plugin      # DSH 的 profile 由 pnpm 管理
 ```
+
+（这个 profile 是 `npm` 装的就用 `npm install dsh-screenshot-plugin`，两者别混用。）
 
 包自带 `cordis.patch.yml`（bundle patch），装完把包名追加到同一目录 `package.json` 的
 `dsh.profile.bundles` 末尾：
@@ -48,8 +50,8 @@ npm install "dsh-screenshot-plugin"
     hotkey: Ctrl+Alt+A
 ```
 
-卸载：`npm uninstall dsh-screenshot-plugin`，并从 `bundles` 里删掉那一行。
-从源码装也是同一条路：`npm install <本仓库路径>`。
+卸载：`pnpm remove dsh-screenshot-plugin`，并从 `bundles` 里删掉那一行。
+从源码装也是同一条路：`pnpm add <本仓库路径>`。
 
 ## 使用
 
