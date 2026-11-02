@@ -1,0 +1,77 @@
+{
+  "name": "@xiaozhu/dsh-screenshot",
+  "version": "0.7.1",
+  "description": "Headless global-hotkey region screenshot for DeepSeek Harness Desktop: no window, no sidebar entry, just a hotkey that copies a region to the clipboard, with large-model OCR.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/native-require.js",
+    "lib/win32.js",
+    "lib/screen.js",
+    "lib/overlay.js",
+    "lib/clipboard.js",
+    "lib/ocr.js",
+    "lib/vision.js",
+    "lib/services.js",
+    "lib/diag.js",
+    "lib/text.js",
+    "lib/panel.js",
+    "lib/scripts/ocr.ps1",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "screenshot",
+    "screen-capture",
+    "ocr",
+    "hotkey",
+    "windows"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1583477320/dsh-screenshot.git"
+  },
+  "homepage": "https://github.com/1583477320/dsh-screenshot#readme",
+  "bugs": {
+    "url": "https://github.com/1583477320/dsh-screenshot/issues"
+  },
+  "author": "zhuyuelei <1583477320@qq.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dsh": {
+    "supported": "0.2.0-rc.2",
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-locale"
+      ],
+      "platform": "web"
+    }
+  }
+}

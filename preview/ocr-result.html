@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>文字提取结果卡片 · 视觉稿</title>
+<style>
+  :root{
+    --ink:#eaeef5;
+    --ink-dim:rgba(234,238,245,.55);
+    --ink-faint:rgba(234,238,245,.34);
+    --primary:#3a86ff;
+    --hairline:rgba(255,255,255,.08);
+    --glass:rgba(20,22,28,.74);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:radial-gradient(1200px 800px at 50% -10%,#14171d,#08090c 60%);
+    color:var(--ink);
+    font-family:"Segoe UI","Microsoft YaHei UI","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;padding:26px;overflow:hidden;
+  }
+
+  /* ---------- 舞台：模拟一次截图 ---------- */
+  .stage{
+    position:relative;width:1280px;height:800px;flex:none;
+    border-radius:12px;overflow:hidden;background:#0e1116;
+    box-shadow:0 50px 120px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);
+  }
+  .desktop{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(900px 600px at 12% 8%,#2b3d55 0%,#17202b 48%,#0c1218 100%),
+      linear-gradient(160deg,#101822,#0b1016);
+  }
+  .win{
+    position:absolute;border-radius:10px;background:#f8f9fb;color:#20242b;
+    box-shadow:0 30px 70px rgba(0,0,0,.55);overflow:hidden;
+  }
+  .win .bar{
+    height:34px;background:linear-gradient(#eef1f5,#e4e8ee);
+    display:flex;align-items:center;gap:6px;padding:0 12px;
+    border-bottom:1px solid #dde2e9;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:#c8ced8}
+  .doc{left:96px;top:88px;width:560px;height:520px}
+  .doc .title{font-size:12px;color:#8b95a3;letter-spacing:.4px}
+  .page{padding:22px 30px;font-size:13.5px;line-height:2.05;color:#2a2f38}
+  .page h2{font-size:15.5px;margin:0 0 12px;color:#151920;letter-spacing:.2px}
+  .page p{margin:0 0 12px;text-align:justify}
+  .page .muted{color:#6d7684}
+
+  .term{left:700px;top:150px;width:470px;height:330px;background:#12161c;color:#c9d4e3;border:1px solid rgba(255,255,255,.08)}
+  .term .bar{background:#171c24;border-bottom:1px solid rgba(255,255,255,.07)}
+  .term .dot{background:#2c3542}
+  .term pre{margin:0;padding:16px 18px;font:12.5px/1.9 "Cascadia Code",Consolas,monospace;color:#93a3b8}
+  .term .ok{color:#5fd08a}
+  .term .key{color:#7cb6ff}
+
+  /* ---------- 遮罩：中间留一个“洞”，露出未压暗的原图 ---------- */
+  .veil{position:absolute;background:rgba(6,8,11,.52)}
+  .veil.t{left:0;top:0;width:100%;height:210px}
+  .veil.b{left:0;top:460px;width:100%;height:340px}
+  .veil.l{left:0;top:210px;width:150px;height:250px}
+  .veil.r{left:550px;top:210px;width:730px;height:250px}
+
+  /* ---------- 选区 ---------- */
+  .selection{
+    position:absolute;left:150px;top:210px;width:400px;height:250px;
+    outline:1.5px solid var(--primary);
+    outline-offset:0;
+    box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 0 3px rgba(58,134,255,.16);
+  }
+  .size{
+    position:absolute;left:8px;top:8px;height:22px;padding:0 8px;
+    display:flex;align-items:center;border-radius:6px;
+    background:rgba(12,14,18,.82);border:1px solid rgba(255,255,255,.1);
+    font:600 11.5px/1 "Segoe UI",sans-serif;color:#dfe6f2;letter-spacing:.3px;
+  }
+
+  /* ---------- 工具栏：挂在选区下方、水平居中 ---------- */
+  .toolbar{
+    position:absolute;left:50%;top:100%;margin-top:10px;transform:translateX(-50%);
+    height:46px;padding:7px;gap:2px;white-space:nowrap;
+    display:flex;align-items:center;border-radius:14px;
+    background:rgba(24,26,32,.94);
+    box-shadow:0 12px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .tb{
+    height:32px;padding:0 11px;border-radius:9px;display:flex;align-items:center;gap:7px;
+    color:var(--ink);font-size:13px;white-space:nowrap;
+  }
+  .tb svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .tb.primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(58,134,255,.35)}
+  .tb.active{color:#8fbcff}
+  .tb.active .live{width:5px;height:5px;border-radius:50%;background:#5fd08a;box-shadow:0 0 6px #5fd08a}
+  .tb.ghost{color:var(--ink-dim)}
+  .divider{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 5px}
+
+  /* ---------- 结果卡片 ---------- */
+  .card{
+    position:absolute;width:380px;padding:14px 16px 12px;border-radius:16px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(22px) saturate(150%);
+    backdrop-filter:blur(22px) saturate(150%);
+    box-shadow:0 28px 70px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.09);
+    transition:left .18s ease,top .18s ease,width .18s ease,opacity .18s ease;
+  }
+  .card::before{
+    content:"";position:absolute;left:-18px;top:28px;width:18px;height:1px;
+    background:linear-gradient(90deg,rgba(58,134,255,.7),rgba(58,134,255,0));
+  }
+  .head{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+  .glyph{
+    width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+    background:rgba(58,134,255,.16);color:#8fbcff;flex:none;
+  }
+  .glyph svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .head .title{font-size:12.5px;font-weight:600;letter-spacing:.2px}
+  .head .spacer{flex:1}
+  .meta{font-size:10.5px;color:var(--ink-faint);letter-spacing:.2px;display:flex;align-items:center;gap:5px}
+  .meta .sep{opacity:.5}
+
+  .body{
+    font-size:15px;line-height:1.85;color:#eef3fb;letter-spacing:.25px;
+    max-height:236px;overflow:auto;padding-right:2px;
+    scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.16) transparent;
+  }
+  .body::-webkit-scrollbar{width:6px}
+  .body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:3px}
+  .body p{margin:0 0 10px}
+  .body p:last-child{margin-bottom:0}
+  .fade{
+    position:absolute;left:1px;right:1px;bottom:44px;height:38px;pointer-events:none;
+    background:linear-gradient(rgba(20,22,28,0),rgba(20,22,28,.92));border-radius:0 0 16px 16px;
+  }
+  .foot{
+    display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;
+    border-top:1px solid var(--hairline);
+  }
+  .count{font-size:11px;color:var(--ink-faint);letter-spacing:.3px}
+  .foot .spacer{flex:1}
+  .act{
+    height:26px;padding:0 10px;border-radius:7px;display:flex;align-items:center;gap:6px;
+    font-size:11.5px;border:1px solid transparent;
+  }
+  .act.strong{background:rgba(58,134,255,.14);border-color:rgba(58,134,255,.3);color:#a8c8ff}
+  .act.quiet{color:var(--ink-dim)}
+  .act svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .hint{font-size:10.5px;color:var(--ink-faint);letter-spacing:.2px}
+
+  /* ---------- 三种布局 ---------- */
+  .stage[data-layout="right"] .card{left:568px;top:232px}
+  .stage[data-layout="center"] .card{left:450px;top:300px;width:380px}
+  .stage[data-layout="center"] .card::before{display:none}
+  .stage[data-layout="center"] .veil{background:rgba(6,8,11,.6)}
+  .stage[data-layout="below"] .card{left:150px;top:530px;width:400px}
+  .stage[data-layout="below"] .card::before{left:28px;top:-18px;width:1px;height:18px;
+    background:linear-gradient(180deg,rgba(58,134,255,.7),rgba(58,134,255,0))}
+
+  /* ---------- 页脚控制 ---------- */
+  .controls{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink-dim)}
+  .chip{
+    height:28px;padding:0 12px;border-radius:8px;display:flex;align-items:center;gap:6px;
+    border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);cursor:pointer;
+    color:var(--ink-dim);font-size:12px;transition:.15s;
+  }
+  .chip:hover{border-color:rgba(255,255,255,.2);color:var(--ink)}
+  .chip[aria-pressed="true"]{background:rgba(58,134,255,.16);border-color:rgba(58,134,255,.4);color:#bcd6ff}
+  .label{color:var(--ink-faint);font-size:11.5px;letter-spacing:.3px}
+  .swatch{width:10px;height:10px;border-radius:3px;background:rgba(58,134,255,.8)}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage" data-layout="right">
+  <div class="desktop"></div>
+
+  <!-- 被截的原始窗口：选区里露出来的就是这一段 -->
+  <div class="win doc">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="title" style="margin-left:8px">第三章_实验设计.docx</span></div>
+    <div class="page">
+      <h2>第三章 实验设计与结果分析</h2>
+      <p><strong>3.1 被试与分组</strong></p>
+      <p>本研究采用双盲随机对照设计，共纳入 120 名受试者，分为实验组与对照组各 60 人。所有受试者在实验开始前均签署知情同意书，并在统一指导下完成基线问卷。</p>
+      <p class="muted">3.2 实验材料与流程</p>
+      <p class="muted">实验材料包括两套难度匹配的阅读任务……</p>
+      <p class="muted">3.3 数据采集</p>
+      <p class="muted">所有反应时数据经 200 ms 以下试次剔除后……</p>
+    </div>
+  </div>
+
+  <div class="win term">
+    <div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+    <pre><span class="key">$</span> dsh-screenshot --ocr
+  provider   deepseek-official
+  model      deepseek-flash
+  <span class="ok">done</span>       76 chars in 1.2s</pre>
+  </div>
+
+  <!-- 遮罩挖洞 -->
+  <div class="veil t"></div>
+  <div class="veil b"></div>
+  <div class="veil l"></div>
+  <div class="veil r"></div>
+
+  <!-- 选区 + 工具栏 -->
+  <div class="selection">
+    <div class="size">400 × 250</div>
+    <div class="toolbar">
+      <div class="tb primary">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>复制
+      </div>
+      <div class="tb ghost">
+        <svg viewBox="0 0 24 24"><path d="M12 3v11"/><path d="m8 11 4 4 4-4"/><path d="M5 21h14"/></svg>保存
+      </div>
+      <div class="tb active">
+        <svg viewBox="0 0 24 24"><path d="M5 5h14"/><path d="M12 5v14"/><path d="M9 19h6"/></svg>文字<i class="live"></i>
+      </div>
+      <div class="divider"></div>
+      <div class="tb ghost">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12"/><path d="m18 6-12 12"/></svg>取消
+      </div>
+    </div>
+  </div>
+
+  <!-- 结果卡片 -->
+  <aside class="card" id="card">
+    <div class="head">
+      <span class="glyph">
+        <svg viewBox="0 0 24 24"><path d="M5 5h14"/><path d="M12 5v14"/><path d="M9 19h6"/></svg>
+      </span>
+      <span class="title">已提取文字</span>
+      <span class="spacer"></span>
+      <span class="meta">DeepSeek Flash<i class="sep">·</i>1.2s</span>
+    </div>
+
+    <div class="body" id="body">
+      <p>本研究采用双盲随机对照设计，共纳入 120 名受试者，分为实验组与对照组各 60 人。所有受试者在实验开始前均签署知情同意书，并在统一指导下完成基线问卷。</p>
+    </div>
+    <div class="fade" id="fade"></div>
+
+    <div class="foot">
+      <span class="count" id="count">76 字</span>
+      <span class="spacer"></span>
+      <span class="act quiet">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>重新识别
+      </span>
+      <span class="act strong">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>复制文字
+      </span>
+    </div>
+  </aside>
+</div>
+
+<div class="controls">
+  <span class="label">卡片位置</span>
+  <button class="chip" data-layout="right" aria-pressed="true">选区右侧</button>
+  <button class="chip" data-layout="center" aria-pressed="false">屏幕居中</button>
+  <button class="chip" data-layout="below" aria-pressed="false">选区下方</button>
+  <span style="width:14px"></span>
+  <span class="label">文本长度</span>
+  <button class="chip" id="short" aria-pressed="true">短</button>
+  <button class="chip" id="long" aria-pressed="false">长</button>
+</div>
+
+<script>
+  const stage = document.getElementById('stage')
+  const body = document.getElementById('body')
+  const count = document.getElementById('count')
+  const fade = document.getElementById('fade')
+
+  const shortText = '<p>本研究采用双盲随机对照设计，共纳入 120 名受试者，分为实验组与对照组各 60 人。所有受试者在实验开始前均签署知情同意书，并在统一指导下完成基线问卷。</p>'
+  const longText = shortText + `
+    <p>实验材料为两套难度匹配的阅读任务，每套包含 24 个试次，材料呈现时间由被试自行控制。任务结束后，被试需完成一份理解性测验，用以评估其阅读加工深度。</p>
+    <p>数据采集在隔音实验室内完成，屏幕刷新率 144 Hz，被试眼睛距屏幕约 60 cm。所有反应时数据均剔除低于 200 ms 的试次，并按 ±3 个标准差剔除极端值。</p>
+    <p>结果显示，实验组在理解性测验上的平均得分为 21.4 分（SD = 2.9），显著高于对照组的 18.7 分（SD = 3.4），t(118) = 4.62，p &lt; .001，效应量 d = 0.85。</p>`
+
+  function measure() {
+    const text = body.innerText.replace(/\s+/g, '')
+    count.textContent = text.length + ' 字'
+    // 内容超出可视高度时才显示底部渐隐
+    const overflowing = body.scrollHeight > body.clientHeight + 2
+    fade.style.display = overflowing ? 'block' : 'none'
+  }
+
+  function setText(kind) {
+    body.innerHTML = kind === 'long' ? longText : shortText
+    measure()
+  }
+
+  document.querySelectorAll('[data-layout]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      stage.dataset.layout = btn.dataset.layout
+      document.querySelectorAll('[data-layout]').forEach((other) => {
+        other.setAttribute('aria-pressed', String(other === btn))
+      })
+      measure()
+    })
+  })
+
+  document.getElementById('short').addEventListener('click', (event) => {
+    setText('short')
+    event.currentTarget.setAttribute('aria-pressed', 'true')
+    document.getElementById('long').setAttribute('aria-pressed', 'false')
+  })
+
+  document.getElementById('long').addEventListener('click', (event) => {
+    setText('long')
+    event.currentTarget.setAttribute('aria-pressed', 'true')
+    document.getElementById('short').setAttribute('aria-pressed', 'false')
+  })
+
+  measure()
+</script>
+</body>
+</html>
